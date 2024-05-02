@@ -68,6 +68,37 @@ const validateUserCreateChaiExpect = (req, res, next) => {
             /^[a-zA-Z]+$/,
             'firstName must be a string'
         )
+        assert(req.body.emailAddress, 'Missing or incorrect email field')
+        chai.expect(req.body.emailAddress).to.not.be.empty
+        chai.expect(req.body.emailAddress).to.be.a('string')
+        assert(req.body.lastName, 'Missing or incorrect lastName field')
+
+        chai.expect(req.body.lastName).to.not.be.empty
+        chai.expect(req.body.lastName).to.be.a('string')
+        chai.expect(req.body.lastName).to.match(
+            /^[a-zA-Z]+$/,
+            'lastName must be a string'
+        )
+        logger.trace('User successfully validated')
+        next()
+    } catch (ex) {
+        logger.trace('User validation failed:', ex.message)
+        next({
+            status: 400,
+            message: ex.message,
+            data: {}
+        })
+    }
+}
+const validateUserDeleteChaiExpect = (req, res, next) => {
+    try {
+        assert(req.body.userId, 'Missing or incorrect number field')
+        chai.expect(req.body.userId).to.not.be.empty
+        chai.expect(req.body.userId).to.be.a('number')
+        chai.expect(req.body.firstName).to.match(
+            /^[1-9]+$/,
+            'firstName must be a number'
+        )
         logger.trace('User successfully validated')
         next()
     } catch (ex) {
@@ -80,13 +111,13 @@ const validateUserCreateChaiExpect = (req, res, next) => {
     }
 }
 
+
+
 // Userroutes
-router.post('/api/user', validateUserCreateChaiExpect, userController.create)
+router.post('/api/user/create', validateUserCreateChaiExpect, userController.create)
+router.delete('/api/user/:userId', userController.delete)
 router.get('/api/user', userController.getAll)
 router.get('/api/user/:userId', userController.getById)
-
-// Tijdelijke routes om niet bestaande routes op te vangen
-router.put('/api/user/:userId', notFound)
-router.delete('/api/user/:userId', notFound)
+router.put('/api/user/:userId', userController.update)
 
 module.exports = router
