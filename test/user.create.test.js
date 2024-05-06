@@ -26,9 +26,15 @@ describe('UC201 Registreren als nieuwe user', () => {
         chai.request(server)
             .post(endpointToTest)
             .send({
-                // firstName: 'Voornaam', ontbreekt
-                lastName: 'Achternaam',
-                emailAdress: 'v.a@server.nl'
+                // firstName: 'Hendrik', ontbreekt
+                lastName: 'van Dam',
+                emailAddress: 'xxxxx.xxxx@server.nl',
+                isActive: true,
+                password: 'Secret12',
+                phoneNumber: '0612345678',
+                roles: ['admin', 'user'],
+                street: 'Kerkstra 1',
+                city: 'Amsterdam',
             })
             .end((err, res) => {
                 /**
@@ -54,9 +60,15 @@ describe('UC201 Registreren als nieuwe user', () => {
         chai.request(server)
             .post(endpointToTest)
             .send({
-                // firstName: 'Voornaam', ontbreekt
-                lastName: 'Achternaam',
-                emailAdress: 'v.a@server.nl'
+                firstName: 'Hendrik',
+                lastName: 'van Dam',
+                isActive: true,
+                password: 'Secret12',
+                phoneNumber: '0612345678',
+                roles: ['admin', 'user'],
+                street: 'Kerkstra 1',
+                city: 'Amsterdam',
+                emailAddress: 'vakantie%%%server.nl' // invalide mailadres
             })
             .end((err, res) => {
         chai.expect(res).to.have.status(400)
@@ -76,16 +88,69 @@ describe('UC201 Registreren als nieuwe user', () => {
     })
 
     it.skip('TC-201-3 Niet-valide password', (done) => {
-        //
-        // Hier schrijf je jouw testcase.
-        //
-        done()
+        chai.request(server)
+            .post(endpointToTest)
+            .send({
+                firstName: 'Hendrik',
+                lastName: 'van Dam',
+                emailAddress: 'hv.dd@server.nl',
+                isActive: true,
+                password: '!',
+                phoneNumber: '0612345678',
+                roles: ['admin', 'user'],
+                street: 'Kerkstra 1',
+                city: 'Amsterdam'
+            })
+            .end((err, res) => {
+                chai.expect(res).to.have.status(400)
+                chai.expect(res).not.to.have.status(200)
+                chai.expect(res.body).to.be.a('object')
+                chai.expect(res.body).to.have.property('status').equals(400)
+                chai.expect(res.body)
+                    .to.have.property('message')
+                    .equals('Missing or incorrect password field')
+                chai
+                    .expect(res.body)
+                    .to.have.property('data')
+                    .that.is.a('object').that.is.empty
+
+                done()
     })
 
     it.skip('TC-201-4 Gebruiker bestaat al', (done) => {
-        //
-        // Hier schrijf je jouw testcase.
-        //
+        chai.request(server)
+            .post(endpointToTest)
+            .send({
+                firstName: 'Hendrik',
+                lastName: 'van Dam',
+                emailAddress: 'hv.dd@server.nl',
+                isActive: true,
+                password: 'Secret12',
+                phoneNumber: '0612345678',
+                roles: ['admin', 'user'],
+                street: 'Kerkstra 1',
+                city: 'Amsterdam',
+            },{firstName: 'Hendrik',
+                lastName: 'van Dam',
+                emailAddress: 'hv.dd@server.nl',
+                isActive: true,
+                password: 'Secret12',
+                phoneNumber: '0612345678',
+                roles: ['admin', 'user'],
+                street: 'Kerkstra 1',
+                city: 'Amsterdam'})
+            .end((err, res) => {
+                chai.expect(res).to.have.status(400)
+                chai.expect(res).not.to.have.status(200)
+                chai.expect(res.body).to.be.a('object')
+                chai.expect(res.body).to.have.property('status').equals(400)
+                chai.expect(res.body)
+                    .to.have.property('message')
+                    .equals('Missing or incorrect password field')
+                chai
+                    .expect(res.body)
+                    .to.have.property('data')
+                    .that.is.a('object').that.is.empty
         done()
     })
 
@@ -113,4 +178,4 @@ describe('UC201 Registreren als nieuwe user', () => {
                 done()
             })
     })
-})
+})})})
