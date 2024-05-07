@@ -21,8 +21,8 @@ app.get('/api/info', (req, res) => {
 })
 
 // Hier komen alle routes
-app.use(app.use('/api/user', userRoutes)
-)
+app.use(userRoutes)
+
 
 // Route error handler
 app.use((req, res, next) => {
