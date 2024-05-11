@@ -215,9 +215,9 @@ const validateUserUpdateChaiExpect = (req, res, next) => {
 
 // Userroutes
 router.post('/api/user/create', validateUserCreateChaiExpect, userController.create)
-router.delete('/api/user/:userId', validateUserIdChaiExpect, userController.delete)
+router.delete('/api/user/:userId', validateUserIdChaiExpect, validateToken, userController.delete)
 router.get('/api/user', userController.getAll)
 router.get('/api/user/profile', validateToken, userController.getProfile)
 router.get('/api/user/:userId', validateUserIdChaiExpect, userController.getById)
-router.put('/api/user/:userId', validateUserUpdateChaiExpect, userController.update)
+router.put('/api/user/:userId', validateUserUpdateChaiExpect, validateToken, userController.update)
 module.exports = router

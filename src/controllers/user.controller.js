@@ -67,8 +67,9 @@ let userController = {
     ,
     delete: (req, res, next) => {
         const userId = req.params.userId;
+        const creatorId = req.userId;
         logger.info('delete user', userId);
-        userService.delete(userId, (error, success) => {
+        userService.delete(userId, creatorId, (error, success) => {
             if (error) {
                 return next({
                     status: error.status,
@@ -88,8 +89,9 @@ let userController = {
     update: (req, res, next) => {
         const userId = req.params.userId;
         const user = req.body;
+        const creatorId = req.userId;
         logger.info('update user', userId);
-        userService.update(userId, user, (error, success) => {
+        userService.update(userId, creatorId, user , (error, success) => {
             if (error) {
                 return next({
                     status: error.status,

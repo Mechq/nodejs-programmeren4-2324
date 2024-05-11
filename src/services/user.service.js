@@ -93,7 +93,7 @@ const userService = {
             )
         })
     },
-    delete: (userId, callback) => {
+    delete: (userId, creatorId, callback) => {
         logger.info('delete user', userId)
         db.getConnection(function (err, connection) {
             if (err) {
@@ -101,7 +101,8 @@ const userService = {
                 callback(err, null)
                 return
             }
-
+            userId = parseInt(userId, 10)
+            if(creatorId === userId){
             connection.query(
                 'DELETE FROM `user` WHERE id = ?',
                 id = userId,
@@ -123,11 +124,17 @@ const userService = {
                     }
                 }
             )
+        }
+            else{
+                logger.info('User not authorized to delete user')
+                callback(new Error('User not authorized to delete user'), null)
+            }
         })
     },
-    update: (userId, user, callback) => {
+    update: (userId, creatorId, user, callback) => {
         logger.info('update user', userId);
-
+        userId = parseInt(userId, 10)
+        if(userId === creatorId){
         const valuesToUpdate = [];
         const columnsToUpdate = Object.keys(user)
             .filter(key => user[key] !== undefined && user[key] !== null) // Filter out undefined or null values
@@ -173,7 +180,11 @@ const userService = {
                 }
             );
         });
-    },
+    }
+        else{
+            logger.info('User not authorized to delete user')
+            callback(new Error('User not authorized to delete user'), null)
+        }},
     getProfile: (userId, callback) => {
         logger.info('getProfile userId:', userId)
 
