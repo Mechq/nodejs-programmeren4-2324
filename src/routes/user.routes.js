@@ -3,6 +3,7 @@ const assert = require('assert')
 const chai = require('chai')
 chai.should()
 const router = express.Router()
+const validateToken = require('./authentication.routes').validateToken
 const userController = require('../controllers/user.controller')
 const logger = require('../util/logger')
 
@@ -216,7 +217,7 @@ const validateUserUpdateChaiExpect = (req, res, next) => {
 router.post('/api/user/create', validateUserCreateChaiExpect, userController.create)
 router.delete('/api/user/:userId', validateUserIdChaiExpect, userController.delete)
 router.get('/api/user', userController.getAll)
+router.get('/api/user/profile', validateToken, userController.getProfile)
 router.get('/api/user/:userId', validateUserIdChaiExpect, userController.getById)
 router.put('/api/user/:userId', validateUserUpdateChaiExpect, userController.update)
-
 module.exports = router
