@@ -107,7 +107,7 @@ let userController = {
         });
     }
 
-    // Todo: Implement the update and delete methods
+
 }
 
 module.exports = userController

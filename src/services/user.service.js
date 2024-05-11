@@ -1,4 +1,4 @@
-const database = require('../dao/inmem-db')
+
 const logger = require('../util/logger')
 const db = require('../dao/mysql-db.js')
 const userService = {
