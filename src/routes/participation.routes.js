@@ -9,4 +9,5 @@ const logger = require('../util/logger')
 const userController = require("../controllers/user.controller");
 
 router.get('/api/participations/:mealId', validateToken, participationController.getAll)
+router.post('/api/participations/register/:mealId', validateToken, participationController.register)
 module.exports = router

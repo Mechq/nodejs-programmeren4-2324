@@ -22,6 +22,28 @@ let participationController = {
                 })
             }
         })
+    },
+    register: (req, res, next) => {
+        const mealId = req.params.mealId
+        const userId = req.userId
+        logger.info('register for mealId ', mealId)
+        logger.info('register with userId ', userId)
+        participationService.register(userId, mealId, (error, success)  => {
+            if (error) {
+                return next({
+                    status: error.status,
+                    message: error.message,
+                    data: {}
+                })
+            }
+            if (success) {
+                res.status(200).json({
+                    status: success.status,
+                    message: success.message,
+                    data: success.data
+                })
+            }
+        })
     }
 }
 module.exports = participationController

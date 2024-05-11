@@ -54,6 +54,33 @@ const participationService = {
                 }
             );
         });
+    },
+    register: (userId, mealId, callback) => {
+        logger.info('register user: ', userId, ' for meal: ', mealId);
+        db.getConnection(function (err, connection) {
+            if (err) {
+                logger.error(err);
+                callback(err, null);
+                return;
+            }
+            connection.query(
+                'INSERT INTO `meal_participants_user` (`mealId`, `userId`) VALUES (?, ?)',
+                [mealId, userId],
+                function (error, results, fields) {
+                    connection.release();
+                    if (error) {
+                        logger.error(error);
+                        callback(error, null);
+                    } else {
+                        logger.debug(results);
+                        callback(null, {
+                            message: 'Participation created.',
+                            data: results
+                        });
+                    }
+                }
+            );
+        });
     }
 };
 module.exports = participationService;
