@@ -147,20 +147,76 @@ const participationService = {
                                                 });
                                             }
                                         }
+
+                                    }
+
+                                );
+                            }
+
+                        }
+                    }
+                }
+            );
+        });
+    },
+    signout: (userId, mealId, callback) => {
+        logger.info('signed out user: ', userId, ' for meal: ', mealId);
+        db.getConnection(function (err, connection) {
+            if (err) {
+                logger.error(err);
+                callback(err, null);
+                return;
+            }
+            // Alle deelnemende meal ids van een user ophalen
+            // als de mealId van de user gelijk is aan de meegegeven mealId
+            // dan kan de user zich uitschrijven
+            connection.query(
+                'SELECT mealId FROM `meal_participants_user` WHERE `userId` = ?',
+                [userId],
+                function (error, results, fields) {
+                    if (error) {
+                        connection.release();
+                        logger.error(error);
+                        callback(error, null);
+                    } else {
+                        logger.debug(results);
+                        let found = false;
+                        for (let i = 0; i < results.length; i++) {
+                            if (results[i].mealId === mealId) {
+                                found = true;
+                                connection.query(
+                                    'DELETE FROM `meal_participants_user` WHERE userId = (?) AND mealId = (?)',
+                                    [userId, mealId],
+                                    function (error, results, fields) {
+                                        connection.release();
+                                        if (error) {
+                                            logger.error(error);
+                                            callback(error, null);
+                                        } else {
+                                            logger.debug(results);
+                                            callback(null, {
+                                                message: 'Participation removed.',
+                                                data: results
+                                            });
+                                        }
                                     }
                                 );
-                            } else {
-                                callback(null, {
-                                    message: `User is not the cook of the meal.`,
-                                    data: {}
-                                });
+                                break; // Exit the loop once found
                             }
+                        }
+                        if (!found) {
+                            connection.release();
+                            callback(null, {
+                                message: 'User is not participating in the specified meal.',
+                                data: {}
+                            });
                         }
                     }
                 }
             );
         });
     }
+
 
 };
 module.exports = participationService;
