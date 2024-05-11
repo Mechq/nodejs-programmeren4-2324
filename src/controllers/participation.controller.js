@@ -44,6 +44,31 @@ let participationController = {
                 })
             }
         })
+    },
+    getParticipantContact: (req, res, next) => {
+        const mealId = req.params.mealId
+        const participantId = req.params.participantId
+        const userId = req.userId
+        logger.info('getAllMeals mealId', mealId)
+        logger.info('getAllMeals userId', userId)
+        logger.info('getAllMeals participantId', participantId)
+        participationService.getAllContacts(userId, mealId, participantId, (error, success)  => {
+            if (error) {
+                return next({
+                    status: error.status,
+                    message: error.message,
+                    data: {}
+                })
+            }
+            if (success) {
+                res.status(200).json({
+                    status: success.status,
+                    message: success.message,
+                    data: success.data
+                })
+            }
+        })
     }
+
 }
 module.exports = participationController
