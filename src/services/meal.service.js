@@ -2,9 +2,9 @@
 const logger = require('../util/logger')
 const db = require('../dao/mysql-db.js')
 const mealService = {
-    create: (user, callback) => {
-        logger.info('create meal', user);
-
+    create: (meal, userId, callback) => {
+        logger.info('create meal', meal);
+        logger.info(' aaa ',meal.isVegan)
         db.getConnection(function (err, connection) {
             if (err) {
                 logger.error(err);
@@ -12,12 +12,22 @@ const mealService = {
                 return;
             }
 
-            const { firstName, lastName, isActive, emailAddress, password, phoneNumber, roles, street, city } = user;
+            const isVega = meal.isVega  === 1 ? 1 : 0
+            const isVegan = meal.isVegan === 1 ? 1 : 0
+            const isToTakeHome = meal.isToTakeHome  === 0 ? 0 : 1
+            // const dateTime = meal.dateTime
+            const maxAmountOfParticipants = meal.maxAmountOfParticipants ? meal.maxAmountOfParticipants : 6;
+            const price = meal.price
+            const imageUrl = meal.imageUrl
+            const name = meal.name
+            const description = meal.description
+            const allergenes = meal.allergenes
+            logger.trace(isVegan, isVega, isToTakeHome, maxAmountOfParticipants, price, imageUrl, userId, name, description, allergenes)
 
-            connection.query(
-                'INSERT INTO meal (id, isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, price, imageUrl, cookId, createDate, updateDate, name, description, allergenes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?)',
-                [id, isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, price, imageUrl, cookId, createDate, updateDate, name, description, allergenes],
-                function (error, results, fields) {
+                connection.query(
+                    'INSERT INTO meal (isVega, isVegan, isToTakeHome, maxAmountOfParticipants, price, imageUrl, cookId, createDate, updateDate, name, description, allergenes) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), ?, ?, ?)',
+                    [isVega, isVegan, isToTakeHome, maxAmountOfParticipants, price, imageUrl, userId, name, description, allergenes],
+            function (error, results, fields) {
                     connection.release();
 
                     if (error) {
@@ -27,11 +37,11 @@ const mealService = {
                         logger.trace('Meal created.');
                         callback(null, {
                             data: results
-                        });
+                        })
                     }
                 }
-            );
-        });
+            )
+        })
     },
     getAll: (callback) => {
         logger.info('getAll')

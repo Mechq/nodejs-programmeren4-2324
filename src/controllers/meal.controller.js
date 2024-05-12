@@ -5,8 +5,10 @@ const userService = require("../services/user.service");
 let userController = {
     create: (req, res, next) => {
         const meal = req.body
-        logger.info('create meal', meal.name, meal.id)
-        mealService.create(meal, (error, success) => {
+        const userId = req.userId
+
+        logger.info('create meal ', meal.name, meal.id, ' userId: ', userId)
+        mealService.create(meal, userId, (error, success) => {
             if (error) {
                 return next({
                     status: error.status,
