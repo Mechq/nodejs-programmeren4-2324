@@ -36,7 +36,7 @@ const userService = {
     },
 
 
-    getAll: (callback) => {
+    getAll: (isActive, callback) => {
         logger.info('getAll')
         db.getConnection(function (err, connection) {
             if (err) {
@@ -44,7 +44,7 @@ const userService = {
                 callback(err, null)
                 return
             }
-
+            if (isActive === undefined) {
             connection.query(
                 'SELECT * FROM `user`',
                 function (error, results, fields) {
@@ -61,7 +61,27 @@ const userService = {
                         })
                     }
                 }
-            )
+            )}
+            else{
+                connection.query(
+                    'SELECT * FROM `user` WHERE isActive = ?',
+                    [isActive],
+                    function (error, results, fields) {
+                        connection.release()
+
+                        if (error) {
+                            logger.error(error)
+                            callback(error, null)
+                        } else {
+                            logger.debug(results)
+                            callback(null, {
+                                message: `Found ${results.length} users.`,
+                                data: results
+                            })
+                        }
+                    }
+                )
+            }
         })
     },
     getById: (userId, callback) => {
