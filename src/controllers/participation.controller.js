@@ -52,7 +52,7 @@ let participationController = {
         logger.info('getAllMeals mealId', mealId)
         logger.info('getAllMeals userId', userId)
         logger.info('getAllMeals participantId', participantId)
-        participationService.getAllContacts(userId, mealId, participantId, (error, success)  => {
+        participationService.getParticipantContact(userId, mealId, participantId, (error, success)  => {
             if (error) {
                 return next({
                     status: error.status,

@@ -74,7 +74,7 @@ const participationService = {
                     } else {
                         logger.debug(results);
                         callback(null, {
-                            message: 'Participation created.',
+                            message: `User met ID ${userId} is aangemeld voor maaltijd met ID ${mealId}`,
                             data: results
                         });
                     }
@@ -82,7 +82,7 @@ const participationService = {
             );
         });
     },
-    getAllContacts: (userId, mealId, participantId, callback) => {
+    getParticipantContact: (userId, mealId, participantId, callback) => {
         logger.info('getAllContacts for meal ', mealId, ' and participant ', participantId, ' for user ', userId);
         db.getConnection(function (err, connection) {
             if (err) {
@@ -90,7 +90,8 @@ const participationService = {
                 callback(err, null);
                 return;
             }
-
+            // Check if the user is the cook of the meal
+            // If the user is the cook, then the user can see the contact information of the participant
             connection.query(
                 'SELECT cookId FROM `meal` WHERE `id` = ?',
                 [mealId],
@@ -152,7 +153,12 @@ const participationService = {
 
                                 );
                             }
-
+                            else {
+                                callback(null, {
+                                    message: `User is not the cook of the meal.`,
+                                    data: {}
+                                });
+                            }
                         }
                     }
                 }
@@ -195,7 +201,7 @@ const participationService = {
                                         } else {
                                             logger.debug(results);
                                             callback(null, {
-                                                message: 'Participation removed.',
+                                                message: `User met ID ${userId} is afgemeld voor maaltijd met ID ${mealId}`,
                                                 data: results
                                             });
                                         }
