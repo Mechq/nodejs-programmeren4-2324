@@ -109,11 +109,7 @@ const validateUserIdChaiExpect = (req, res, next) => {
         const userId = parseInt(req.params.userId, 10);
         assert(userId, 'Missing or incorrect number field');
         chai.expect(userId).to.not.be.NaN;
-        chai.expect(userId).to.be.a('number');
-        chai.expect(userId).to.match(
-            /^[1-9]+$/,
-            'userId must be a number'
-        );
+        chai.expect(userId).to.be.a('number')
         logger.trace('User successfully validated');
         next();
     } catch (ex) {
@@ -151,7 +147,8 @@ const validateUserUpdateChaiExpect = (req, res, next) => {
             'string',
             'lastName should be a string'
         )}
-        if (emailAddress !== undefined) {
+        assert.ok(emailAddress, 'emailAddress should not be empty');
+
         assert.strictEqual(
             typeof emailAddress,
             'string',
@@ -162,7 +159,7 @@ const validateUserUpdateChaiExpect = (req, res, next) => {
                 emailAddress
             ),
             'emailAddress should match the pattern'
-        )}
+        )
 
         if (password !== undefined) {
         assert.strictEqual(

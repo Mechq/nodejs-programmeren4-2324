@@ -21,13 +21,22 @@ const userService = {
                     connection.release();
 
                     if (error) {
-                        logger.error('error creating user:', error.message || 'unknown error');
-                        callback(error, null);
-                    } else {
-                        logger.trace('User created.');
+                        if (error.code === 'ER_DUP_ENTRY') {
+                            const errorMessage = `Email address '${emailAddress}' already exists.`
+                            const errorObject = new Error(errorMessage)
+                            errorObject.status = 400
+                            callback(errorObject, null)
+                        } else {
+
+                            logger.error('Error creating user:', error.message || 'unknown error')
+                            callback(error, null)
+                        }
+                    }  else {
+                        logger.trace('User created.')
                         callback(null, {
+                            status: 201,
                             message: 'User created.',
-                            data: results
+                            data: user
                         });
                     }
                 }
@@ -84,7 +93,7 @@ const userService = {
             }
         })
     },
-    getById: (userId,creatorId, callback) => {
+    getById: (userId, creatorId, callback) => {
         logger.info('getById');
         db.getConnection(function (err, connection) {
             if (err) {
@@ -94,8 +103,8 @@ const userService = {
             }
 
             connection.query(
-                'SELECT id,emailAddress,firstName, lastName, phoneNumber, password FROM `user` WHERE id = ?',
-                id = userId,
+                'SELECT id, emailAddress, firstName, lastName, phoneNumber, password FROM `user` WHERE id = ?',
+                [userId],
                 function (error, resultsUser, fields) {
                     connection.release()
 
@@ -106,12 +115,13 @@ const userService = {
                         logger.debug(resultsUser)
                         userId = parseInt(userId, 10)
                         creatorId = parseInt(creatorId, 10)
-                        if (userId !== creatorId) {
-                            resultsUser[0].password = undefined
-                        }
+                        if (resultsUser && resultsUser.length > 0) {
+                            if (userId !== creatorId) {
+                                resultsUser[0].password = undefined
+                            }
                             connection.query(
-                                'SELECT id,name,description FROM `meal` WHERE cookId = ?',
-                                id = userId,
+                                'SELECT id, name, description FROM `meal` WHERE cookId = ?',
+                                [userId],
                                 function (error, resultsMeal, fields) {
                                     connection.release()
 
@@ -119,7 +129,6 @@ const userService = {
                                         logger.error(error)
                                         callback(error, null)
                                     } else {
-                                        logger.debug(resultsUser)
                                         logger.debug(resultsMeal)
                                         callback(null, {
                                             message: `Found ${resultsUser.length} user.`,
@@ -128,14 +137,18 @@ const userService = {
                                     }
                                 }
                             )
-
-
+                        } else {
+                            const errorMessage = `User met ID ${userId} bestaat niet`
+                            const errorObject = new Error(errorMessage);
+                            errorObject.status = 404;
+                            callback(errorObject, null);
                         }
-
+                    }
                 }
             )
         })
-    },
+    }
+    ,
     delete: (userId, creatorId, callback) => {
         logger.info('delete user', userId)
         db.getConnection(function (err, connection) {
@@ -176,58 +189,93 @@ const userService = {
     },
     update: (userId, creatorId, user, callback) => {
         logger.info('update user', userId);
-        userId = parseInt(userId, 10)
-        if(userId === creatorId){
-        const valuesToUpdate = [];
-        const columnsToUpdate = Object.keys(user)
-            .filter(key => user[key] !== undefined && user[key] !== null) // Filter out undefined or null values
-            .map(key => {
-                valuesToUpdate.push(user[key]);
-                return `${key}=?`;
-            });
+        userId = parseInt(userId, 10);
 
-        if (columnsToUpdate.length === 0) {
-            // No fields to update
-            callback(new Error('No fields to update'), null);
-            return;
-        }
 
-        const setClause = columnsToUpdate.join(', ');
-        const sql = `UPDATE user SET ${setClause} WHERE id = ?`;
-
-        db.getConnection(function (err, connection) {
-            if (err) {
-                logger.error(err);
-                callback(err, null);
+        if (userId === creatorId) {
+            const { emailAddress } = user;
+            if (!emailAddress) {
+                callback(new Error('Email address is required'), null);
                 return;
             }
 
-            const values = [...valuesToUpdate, userId];
-
-            connection.query(
-                sql,
-                values,
-                function (error, results, fields) {
-                    connection.release();
-
-                    if (error) {
-                        logger.error('Error updating user:', error.message || 'unknown error');
-                        callback(error, null);
-                    } else {
-                        logger.trace(`User updated with id ${userId}.`);
-                        callback(null, {
-                            message: `User updated with id ${userId}.`,
-                            data: results
-                        });
-                    }
+            db.getConnection(function (err, connection) {
+                if (err) {
+                    logger.error(err);
+                    callback(err, null);
+                    return;
                 }
-            );
-        });
-    }
-        else{
-            logger.info('User not authorized to delete user')
-            callback(new Error('User not authorized to delete user'), null)
-        }},
+
+
+                connection.query(
+                    'SELECT emailAddress FROM `user` WHERE id = ?',
+                    [userId],
+                    function (error, results, fields) {
+                        if (error) {
+                            connection.release();
+                            logger.error(error);
+                            callback(error, null);
+                            return;
+                        }
+
+                        const currentEmail = results[0].emailAddress;
+
+                        if (currentEmail !== emailAddress) {
+                            connection.release();
+                            const errorMessage = 'Email address does not match the current email address of the user'
+                            callback(new Error(errorMessage), null);
+                            return;
+                        }
+
+                        const valuesToUpdate = [];
+                        const columnsToUpdate = Object.keys(user)
+                            .filter(key => user[key] !== undefined && user[key] !== null && key !== 'emailAddress')
+                            .map(key => {
+                                valuesToUpdate.push(user[key]);
+                                return `${key}=?`;
+                            });
+
+                        if (columnsToUpdate.length === 0) {
+                            connection.release();
+                            callback(new Error('No fields to update'), null);
+                            return;
+                        }
+
+                        const setClause = columnsToUpdate.join(', ')
+                        const sql = `UPDATE user SET ${setClause} WHERE id = ?`
+
+                        const values = [...valuesToUpdate, userId]
+
+                        connection.query(
+                            sql,
+                            values,
+                            function (error, results, fields) {
+                                connection.release();
+
+                                if (error) {
+                                    logger.error('Error updating user:', error.message || 'unknown error')
+                                    callback(error, null);
+                                } else {
+                                    logger.trace(`User updated with id ${userId}.`)
+                                    callback(null, {
+                                        message: `User updated with id ${userId}.`,
+                                        data: user
+                                    });
+                                }
+                            }
+                        );
+                    }
+                );
+            });
+        } else {
+            logger.info('User not authorized to update user');
+            const errorMessage = 'User not authorized to update user';
+            const errorObject = new Error(errorMessage);
+            errorObject.status = 403;
+            callback(errorObject, null);
+        }
+    },
+
     getProfile: (userId, callback) => {
         logger.info('getProfile userId:', userId)
 
