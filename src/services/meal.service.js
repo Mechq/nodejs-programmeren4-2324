@@ -123,7 +123,7 @@ const mealService = {
                     } else {
                         logger.trace(`Meal deleted with id ${mealId}.`)
                         callback(null, {
-                            message: `Meal deleted with id ${mealId}.`,
+                            message: `Maaltijd met ID ${mealId} is verwijderd`,
                             data: results
                         })
                     }

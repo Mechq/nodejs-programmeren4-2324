@@ -74,7 +74,7 @@ const participationService = {
                     } else {
                         logger.debug(results);
                         callback(null, {
-                            message: 'Participation created.',
+                            message: `User met ID ${userId} is aangemeld voor maaltijd met ID ${mealId}`,
                             data: results
                         });
                     }
@@ -195,7 +195,7 @@ const participationService = {
                                         } else {
                                             logger.debug(results);
                                             callback(null, {
-                                                message: 'Participation removed.',
+                                                message: `‘User met ID ${userId} is afgemeld voor maaltijd met ID ${mealId}`,
                                                 data: results
                                             });
                                         }

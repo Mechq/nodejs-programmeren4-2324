@@ -161,7 +161,7 @@ const userService = {
                     } else {
                         logger.trace(`User deleted with id ${userId}.`)
                         callback(null, {
-                            message: `User deleted with id ${userId}.`,
+                            message: `User met ID ${userId} is verwijderd`,
                             data: results
                         })
                     }
