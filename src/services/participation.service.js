@@ -201,7 +201,7 @@ const participationService = {
                                         } else {
                                             logger.debug(results);
                                             callback(null, {
-                                                message: `User met ID ${userId} is afgemeld voor maaltijd met ID ${mealId}`,
+                                                message: 'Participation removed.',
                                                 data: results
                                             });
                                         }
