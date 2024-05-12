@@ -77,4 +77,5 @@ function validateToken(req, res, next) {
 
 routes.post('/login', validateLogin, AuthController.login)
 
+
 module.exports = { routes, validateToken }

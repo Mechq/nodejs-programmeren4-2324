@@ -84,7 +84,7 @@ const userService = {
             }
         })
     },
-    getById: (userId, callback) => {
+    getById: (userId,creatorId, callback) => {
         logger.info('getById');
         db.getConnection(function (err, connection) {
             if (err) {
@@ -94,21 +94,44 @@ const userService = {
             }
 
             connection.query(
-                'SELECT * FROM `user` WHERE id = ?',
+                'SELECT id,emailAddress,firstName, lastName, phoneNumber, password FROM `user` WHERE id = ?',
                 id = userId,
-                function (error, results, fields) {
+                function (error, resultsUser, fields) {
                     connection.release()
 
                     if (error) {
                         logger.error(error)
                         callback(error, null)
                     } else {
-                        logger.debug(results)
-                        callback(null, {
-                            message: `Found user.`,
-                            data: results
-                        })
-                    }
+                        logger.debug(resultsUser)
+                        userId = parseInt(userId, 10)
+                        creatorId = parseInt(creatorId, 10)
+                        if (userId !== creatorId) {
+                            resultsUser[0].password = undefined
+                        }
+                            connection.query(
+                                'SELECT id,name,description FROM `meal` WHERE cookId = ?',
+                                id = userId,
+                                function (error, resultsMeal, fields) {
+                                    connection.release()
+
+                                    if (error) {
+                                        logger.error(error)
+                                        callback(error, null)
+                                    } else {
+                                        logger.debug(resultsUser)
+                                        logger.debug(resultsMeal)
+                                        callback(null, {
+                                            message: `Found ${resultsUser.length} user.`,
+                                            data: [resultsUser, resultsMeal]
+                                        })
+                                    }
+                                }
+                            )
+
+
+                        }
+
                 }
             )
         })

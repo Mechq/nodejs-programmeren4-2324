@@ -16,9 +16,9 @@ const port = process.env.PORT || 3000
 app.get('/api/info', (req, res) => {
     console.log('GET /api/info')
     const info = {
-        name: 'My Nodejs Express server',
-        version: '0.0.1',
-        description: 'This is a simple Nodejs Express server'
+        studentName: 'Stef Rensma',
+        studentNumber: '2217058',
+        description: 'This is a simple api server for a meal planner.'
     }
     res.json(info)
 })
@@ -28,7 +28,6 @@ app.use(userRoutes)
 app.use(mealRoutes)
 app.use(participationRoutes)
 app.use('/api/auth', authRoutes)
-
 
 // Route error handler
 app.use((req, res, next) => {

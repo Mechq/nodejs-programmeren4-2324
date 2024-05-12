@@ -48,8 +48,9 @@ let userController = {
 
     getById: (req, res, next) => {
         const userId = req.params.userId;
+        const creatorId = req.userId;
         logger.trace('userController: getById', userId);
-        userService.getById(userId, (error, success) => {
+        userService.getById(userId, creatorId, (error, success) => {
             if (error) {
                 return next({
                     status: error.status,
