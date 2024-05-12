@@ -11,26 +11,54 @@ const logger = require('../util/logger')
 //
 //
 //
-function validateLogin(req, res, next) {
-    // Verify that we receive the expected input
+// function validateLogin(req, res, next) {
+//     // Verify that we receive the expected input
+//     try {
+//         assert(
+//             typeof req.body.emailAddress === 'string',
+//             'email must be a string.'
+//         )
+//         assert(
+//             typeof req.body.password === 'string',
+//             'password must be a string.'
+//         )
+//         next()
+//     } catch (ex) {
+//         next({
+//             status: 409,
+//             message: ex.toString(),
+//             data: {}
+//         })
+//     }
+// }
+const validateLogin = (req, res, next) => {
     try {
-        assert(
-            typeof req.body.emailAddress === 'string',
-            'email must be a string.'
+        const {
+            emailAddress,
+            password,
+        } = req.body;
+        assert.ok(emailAddress, 'emailAddress should not be empty');
+        assert.strictEqual(
+            typeof emailAddress,
+            'string',
+            'isVega should be a string'
         )
-        assert(
-            typeof req.body.password === 'string',
-            'password must be a string.'
+
+        assert.ok(password, 'password should not be empty');
+        assert.strictEqual(
+            typeof password,
+            'string',
+            'password should be a string'
         )
-        next()
-    } catch (ex) {
-        next({
-            status: 409,
-            message: ex.toString(),
-            data: {}
-        })
+
+        next();
+    } catch (err) {
+        return res.status(400).json({
+            status: 400,
+            error: err.toString(),
+        });
     }
-}
+};
 
 //
 //

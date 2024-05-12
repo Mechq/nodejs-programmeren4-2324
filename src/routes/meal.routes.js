@@ -55,14 +55,13 @@ const validateMealCreateChaiExpect = (req, res, next) => {
             'isToTakeHome should be either 0 or 1'
         )
 
-
+        assert.ok(maxAmountOfParticipants, 'maxAmountOfParticipants should not be empty');
         assert.strictEqual(
             typeof maxAmountOfParticipants,
-
             'number',
-            maxAmountOfParticipants > 0,
-            'maxAmountOfParticipants should be a number (higher than 0)'
+            'maxAmountOfParticipants should be a number'
         );
+        assert.strictEqual(maxAmountOfParticipants > 0, true, 'maxAmountOfParticipants should be a positive number')
 
         logger.trace(typeof price)
         assert.ok(price, 'price should not be empty');
@@ -78,13 +77,13 @@ const validateMealCreateChaiExpect = (req, res, next) => {
         )
 
 
-        assert.ok(imageUrl, 'imageUrl should not be empty')
+        // assert.ok(imageUrl, 'imageUrl should not be empty')
         assert.strictEqual(typeof imageUrl, 'string', 'imageUrl should be a string')
 
         assert.ok(name, 'name should not be empty')
         assert.strictEqual(typeof name, 'string', 'name should be a string')
 
-        assert.ok(description, 'description should not be empty')
+        // assert.ok(description, 'description should not be empty')
         assert.strictEqual(
             typeof description,
             'string',
