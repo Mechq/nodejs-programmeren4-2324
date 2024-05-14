@@ -26,9 +26,10 @@ let userController = {
 
     getAll: (req, res, next) => {
         const isActive = req.query.isActive
+        const role = req.query.role
         logger.trace('getAll', isActive)
         logger.trace('getAll')
-        userService.getAll(isActive,(error, success) => {
+        userService.getAll(isActive, role,(error, success) => {
             if (error) {
                 return next({
                     status: error.status,

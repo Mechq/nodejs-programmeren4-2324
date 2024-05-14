@@ -45,7 +45,7 @@ const userService = {
     },
 
 
-    getAll: (isActive, callback) => {
+    getAll: (isActive, role, callback) => {
         logger.info('getAll')
         db.getConnection(function (err, connection) {
             if (err) {
@@ -53,45 +53,37 @@ const userService = {
                 callback(err, null)
                 return
             }
-            if (isActive === undefined) {
+            let sqlString = "SELECT * FROM `user` WHERE 1=1"; // Initialize SQL string with a condition that's always true
+            let values = []; // Initialize values array to hold parameter values
+
+            if (isActive !== undefined) {
+                sqlString += " AND isActive = ?";
+                values.push(isActive);
+            }
+
+            if (role !== undefined) { // Corrected to use role instead of roles
+                sqlString += " AND FIND_IN_SET(?, roles)"; // Corrected the SQL syntax
+                values.push(role);
+            }
             connection.query(
-                'SELECT * FROM `user`',
+                sqlString,
+                values, // Pass the values array instead of wrapping in another array
                 function (error, results, fields) {
-                    connection.release()
+                    connection.release();
 
                     if (error) {
-                        logger.error(error)
-                        callback(error, null)
+                        logger.error(error);
+                        callback(error, null);
                     } else {
-                        logger.debug(results)
+                        logger.debug(results);
                         callback(null, {
                             message: `Found ${results.length} users.`,
                             data: results
-                        })
+                        });
                     }
                 }
-            )}
-            else{
-                connection.query(
-                    'SELECT * FROM `user` WHERE isActive = ?',
-                    [isActive],
-                    function (error, results, fields) {
-                        connection.release()
-
-                        if (error) {
-                            logger.error(error)
-                            callback(error, null)
-                        } else {
-                            logger.debug(results)
-                            callback(null, {
-                                message: `Found ${results.length} users.`,
-                                data: results
-                            })
-                        }
-                    }
-                )
-            }
-        })
+            );
+        });
     },
     getById: (userId, creatorId, callback) => {
         logger.info('getById');
