@@ -41,7 +41,7 @@ const validateLogin = (req, res, next) => {
         assert.strictEqual(
             typeof emailAddress,
             'string',
-            'isVega should be a string'
+            'emailAddress should be a string'
         )
 
         assert.ok(password, 'password should not be empty');
@@ -56,6 +56,7 @@ const validateLogin = (req, res, next) => {
         return res.status(400).json({
             status: 400,
             error: err.toString(),
+            message: err.message,
         });
     }
 };
@@ -83,7 +84,7 @@ function validateToken(req, res, next) {
             if (err) {
                 logger.warn('Not authorized')
                 next({
-                    status: 401,
+                    status: 400,
                     message: 'Not authorized!',
                     data: {}
                 })
