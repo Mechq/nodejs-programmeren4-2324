@@ -28,9 +28,9 @@ app.get('/api/info', (req, res) => {
 });
 
 // Register routes
-app.use('/api/users', userRoutes);
-app.use('/api/meals', mealRoutes);
-app.use('/api/participations', participationRoutes);
+app.use(userRoutes);
+app.use(mealRoutes);
+app.use(participationRoutes);
 app.use('/api/auth', authRoutes);
 
 // Route error handler
