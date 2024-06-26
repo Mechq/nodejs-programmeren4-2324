@@ -36,7 +36,9 @@ const mealService = {
                     } else {
                         logger.trace('Meal created.');
                         callback(null, {
-                            data: results
+                            message: 'Maaltijd aangemaakt',
+                            status: 200,
+                            data: meal
                         })
                     }
                 }

@@ -9,7 +9,7 @@ tracer.setLevel('warn');
 
 const endpointToTest = '/api/auth/login';
 
-describe('UC101 Inloggen', () => {
+describe('UC-101 Inloggen', () => {
     beforeEach((done) => {
         console.log('Before each test');
         done();
@@ -22,8 +22,6 @@ describe('UC101 Inloggen', () => {
                 password: 'secret'
             })
             .end((err, res) => {
-                console.log('Response body:', res.body);  // Log response body for debugging
-                console.log('Response status:', res.status);  // Log status code for debugging
 
                 chai.expect(res).to.have.status(400);  // Expecting 400 status code
                 chai.expect(res.body).to.be.a('object');
@@ -42,8 +40,6 @@ describe('UC101 Inloggen', () => {
                 password: 12345  // Invalid password format (not a string)
             })
             .end((err, res) => {
-                console.log('Response body:', res.body);  // Log response body for debugging
-                console.log('Response status:', res.status);  // Log status code for debugging
 
                 chai.expect(res).to.have.status(400);  // Expecting 400 status code
                 chai.expect(res.body).to.be.a('object');
@@ -62,8 +58,6 @@ describe('UC101 Inloggen', () => {
                 password: 'secret'
             })
             .end((err, res) => {
-                console.log('Response body:', res.body);  // Log response body for debugging
-                console.log('Response status:', res.status);  // Log status code for debugging
 
                 chai.expect(res).to.have.status(400);  // Expecting 404 status code
                 chai.expect(res.body).to.be.a('object');
@@ -82,8 +76,6 @@ describe('UC101 Inloggen', () => {
                 password: 'secret'
             })
             .end((err, res) => {
-                console.log('Response body:', res.body);  // Log response body for debugging
-                console.log('Response status:', res.status);  // Log status code for debugging
 
                 chai.expect(res).to.have.status(200);  // Expecting 200 status code
                 chai.expect(res.body).to.be.a('object');

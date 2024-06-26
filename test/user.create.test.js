@@ -9,7 +9,7 @@ tracer.setLevel('warn')
 
 const endpointToTest = '/api/user'
 
-describe('UC201 Registreren als nieuwe user', () => {
+describe('UC-201 Registreren als nieuwe user', () => {
     /**
      * Voorbeeld van een beforeEach functie.
      * Hiermee kun je code hergebruiken of initialiseren.
