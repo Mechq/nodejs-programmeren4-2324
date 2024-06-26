@@ -69,13 +69,24 @@ const participationService = {
                 function (error, results, fields) {
                     connection.release();
                     if (error) {
-                        logger.error(error);
-                        callback(error, null);
+                        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+                            // Handle the specific case where the meal does not exist
+                            const errorMessage = `Meal with ID ${mealId} does not exist.`;
+                            const errorObject = new Error(errorMessage);
+                            errorObject.status = 404;
+                            logger.error(errorMessage);
+                            callback(errorObject, { data: {} });
+                        } else {
+                            // Handle other errors
+                            logger.error(error);
+                            callback(error, null);
+                        }
                     } else {
                         logger.debug(results);
                         callback(null, {
                             message: `User met ID ${userId} is aangemeld voor maaltijd met ID ${mealId}`,
-                            data: results
+                            status: 200,
+                            data: {}
                         });
                     }
                 }
@@ -166,6 +177,7 @@ const participationService = {
         });
     },
     signout: (userId, mealId, callback) => {
+        mealId = parseInt(mealId, 10);
         logger.info('signed out user: ', userId, ' for meal: ', mealId);
         db.getConnection(function (err, connection) {
             if (err) {
@@ -188,6 +200,7 @@ const participationService = {
                         logger.debug(results);
                         let found = false;
                         for (let i = 0; i < results.length; i++) {
+                            console.log('comparing '+ typeof results[i].mealId + ' with mealId ' +  typeof mealId);
                             if (results[i].mealId === mealId) {
                                 found = true;
                                 connection.query(
@@ -201,8 +214,10 @@ const participationService = {
                                         } else {
                                             logger.debug(results);
                                             callback(null, {
+
                                                 message: 'Participation removed.',
-                                                data: results
+                                                status: 200,
+                                                data: {}
                                             });
                                         }
                                     }

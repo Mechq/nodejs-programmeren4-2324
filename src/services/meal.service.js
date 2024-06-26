@@ -94,7 +94,7 @@ const mealService = {
                     } else {
                         logger.debug(results)
                         callback(null, {
-                            data: results
+                            data: results[0]
                         })
                     }
                 }
