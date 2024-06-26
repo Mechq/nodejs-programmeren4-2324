@@ -12,8 +12,7 @@ const userService = {
                 return;
             }
 
-            const { firstName, lastName, isActive, emailAddress, password, phoneNumber, roles, street, city } = user;
-
+            const { firstName, lastName, isActive, emailAddress, password, phoneNumber, roles, street, city} = user;
             connection.query(
                 'INSERT INTO user (firstName, lastName, isActive, emailAddress, password, phoneNumber, roles, street, city) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [firstName, lastName, isActive, emailAddress, password, phoneNumber, roles, street, city],
@@ -32,7 +31,7 @@ const userService = {
                             callback(error, null)
                         }
                     }  else {
-                        logger.trace('User created.')
+                        logger.trace('User created with status ' + '201')
                         callback(null, {
                             status: 201,
                             message: 'User created.',

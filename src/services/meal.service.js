@@ -136,7 +136,7 @@ const mealService = {
 
         const valuesToUpdate = [];
         const columnsToUpdate = Object.keys(meal)
-            .filter(key => meal[key] !== undefined && meal[key] !== null) // Filter out undefined or null values
+            .filter(key => meal[key] !== undefined && meal[key] !== null)
             .map(key => {
                 valuesToUpdate.push(meal[key]);
                 return `${key}=?`;

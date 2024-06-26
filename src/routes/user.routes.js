@@ -16,94 +16,7 @@ const notFound = (req, res, next) => {
     })
 }
 
-const validateUserCreateChaiExpect = (req, res, next) => {
-    try {
-        const {
-            firstName,
-            lastName,
-            emailAddress,
-            password,
-            isActive,
-            street,
-            city,
-            phoneNumber,
-            roles,
-        } = req.body;
 
-        assert.ok(firstName, 'firstName should not be empty');
-        assert.strictEqual(
-            typeof firstName,
-            'string',
-            'firstName should be a string'
-        );
-
-        assert.ok(lastName, 'lastName should not be empty');
-        assert.strictEqual(
-            typeof lastName,
-            'string',
-            'lastName should be a string'
-        );
-
-        assert.ok(emailAddress, 'emailAddress should not be empty');
-        assert.strictEqual(
-            typeof emailAddress,
-            'string',
-            'emailAddress should be a string'
-        );
-        assert.ok(
-            /^[a-zA-Z][.][a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(
-                emailAddress
-            ),
-            'emailAddress should match the pattern'
-        );
-
-        assert.ok(password, 'password should not be empty');
-        assert.strictEqual(
-            typeof password,
-            'string',
-            'password should be a string'
-        );
-        assert.ok(
-            /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/.test(password),
-            'password should match the pattern'
-        );
-
-        assert.ok(isActive !== undefined, 'isActive should not be empty');
-        assert.strictEqual(
-            typeof isActive,
-            'boolean',
-            'isActive should be a boolean'
-        );
-
-        assert.ok(street, 'street should not be empty');
-        assert.strictEqual(typeof street, 'string', 'street should be a string');
-
-        assert.ok(city, 'city should not be empty');
-        assert.strictEqual(typeof city, 'string', 'city should be a string');
-
-        assert.ok(phoneNumber, 'phoneNumber should not be empty');
-        assert.strictEqual(
-            typeof phoneNumber,
-            'string',
-            'phoneNumber should be a string'
-        );
-        assert.ok(
-            /^06[-\s]?\d{8}$/.test(phoneNumber),
-            'phoneNumber should match the pattern'
-        );
-
-        assert.ok(Array.isArray(roles), 'roles should be an array');
-
-        // Move to the next middleware if validation passes
-        next();
-    } catch (err) {
-        return res.status(400).json({
-            status: 400,
-            message: 'Invalid user data',
-            error: err.toString(),
-        });
-    }
-};
 const validateUserIdChaiExpect = (req, res, next) => {
     try {
         const userId = parseInt(req.params.userId, 10);
@@ -121,8 +34,68 @@ const validateUserIdChaiExpect = (req, res, next) => {
         });
     }
 };
+const validateUserCreate = (req, res, next) => {
+    try {
+        const {
+            firstName,
+            lastName,
+            emailAddress,
+            password,
+            street,
+            city,
+            phoneNumber,
+            roles,
+        } = req.body;
 
-const validateUserUpdateChaiExpect = (req, res, next) => {
+        assert.ok(firstName, 'Missing or incorrect firstName field');
+        assert.strictEqual(typeof firstName, 'string', 'Missing or incorrect firstName field');
+
+        assert.ok(lastName, 'Missing or incorrect lastName field');
+        assert.strictEqual(typeof lastName, 'string', 'Missing or incorrect lastName field');
+
+        assert.ok(emailAddress, 'Missing or incorrect emailAddress field');
+        assert.strictEqual(typeof emailAddress, 'string', 'Missing or incorrect emailAddress field');
+        assert.ok(
+            /^[a-zA-Z][.][a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(emailAddress),
+            'Missing or incorrect emailAddress field'
+        );
+
+        assert.ok(password, 'Missing or incorrect password field');
+        assert.strictEqual(typeof password, 'string', 'Missing or incorrect password field');
+        assert.ok(
+            /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/.test(password),
+            'Missing or incorrect password field'
+        );
+
+        assert.ok(street, 'Missing or incorrect street field');
+        assert.strictEqual(typeof street, 'string', 'Missing or incorrect street field');
+
+        assert.ok(city, 'Missing or incorrect city field');
+        assert.strictEqual(typeof city, 'string', 'Missing or incorrect city field');
+
+        assert.ok(phoneNumber, 'Missing or incorrect phoneNumber field');
+        assert.strictEqual(typeof phoneNumber, 'string', 'Missing or incorrect phoneNumber field');
+        assert.ok(
+            /^06[-\s]?\d{8}$/.test(phoneNumber),
+            'Missing or incorrect phoneNumber field'
+        );
+
+        assert.ok(roles, 'Missing or incorrect roles field');
+        assert.ok(Array.isArray(roles), 'roles should be an array');
+
+        next();
+    } catch (err) {
+        return res.status(400).json({
+            status: 400,
+            message: err.message,
+            error: err.toString(),
+            data: {},
+        });
+    }
+};
+
+// Validation for updating a user
+const validateUserUpdate = (req, res, next) => {
     try {
         const {
             firstName,
@@ -135,86 +108,72 @@ const validateUserUpdateChaiExpect = (req, res, next) => {
             phoneNumber,
             roles,
         } = req.body;
-        if (firstName !== undefined) {
-        assert.strictEqual(
-            typeof firstName,
-            'string',
-            'firstName should be a string'
-        )}
-        if (lastName !== undefined) {
-        assert.strictEqual(
-            typeof lastName,
-            'string',
-            'lastName should be a string'
-        )}
-        assert.ok(emailAddress, 'emailAddress should not be empty');
 
-        assert.strictEqual(
-            typeof emailAddress,
-            'string',
-            'emailAddress should be a string'
-        )
+        assert.ok(emailAddress, 'Missing or incorrect emailAddress field');
+        assert.strictEqual(typeof emailAddress, 'string', 'emailAddress should be a string');
         assert.ok(
-            /^[a-zA-Z][.][a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(
-                emailAddress
-            ),
+            /^[a-zA-Z][.][a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(emailAddress),
             'emailAddress should match the pattern'
-        )
+        );
+
+        if (firstName !== undefined) {
+            assert.strictEqual(typeof firstName, 'string', 'firstName should be a string');
+        }
+
+        if (lastName !== undefined) {
+            assert.strictEqual(typeof lastName, 'string', 'lastName should be a string');
+        }
 
         if (password !== undefined) {
-        assert.strictEqual(
-            typeof password,
-            'string',
-            'password should be a string'
-        )
-        assert.ok(
-            /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/.test(password),
-            'password should match the pattern'
-        )}
+            assert.strictEqual(typeof password, 'string', 'password should be a string');
+            assert.ok(
+                /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/.test(password),
+                'password should match the pattern'
+            );
+        }
 
         if (isActive !== undefined) {
-        assert.strictEqual(
-            typeof isActive,
-            'boolean',
-            'isActive should be a boolean'
-        )}
+            assert.strictEqual(typeof isActive, 'boolean', 'isActive should be a boolean');
+        }
 
         if (street !== undefined) {
-        assert.strictEqual(typeof street, 'string', 'street should be a string')}
+            assert.strictEqual(typeof street, 'string', 'street should be a string');
+        }
 
         if (city !== undefined) {
-        assert.strictEqual(typeof city, 'string', 'city should be a string')}
+            assert.strictEqual(typeof city, 'string', 'city should be a string');
+        }
 
         if (phoneNumber !== undefined) {
-        assert.strictEqual(
-            typeof phoneNumber,
-            'string',
-            'phoneNumber should be a string'
-        )
-        assert.ok(
-            /^06[-\s]?\d{8}$/.test(phoneNumber),
-            'phoneNumber should match the pattern'
-        )}
-        if (roles !== undefined) {
-        assert.ok(Array.isArray(roles), 'roles should be an array')}
+            assert.strictEqual(typeof phoneNumber, 'string', 'phoneNumber should be a string');
+            assert.ok(
+                /^06[-\s]?\d{8}$/.test(phoneNumber),
+                'phoneNumber should match the pattern'
+            );
+        }
 
-        // Move to the next middleware if validation passes
+        if (roles !== undefined) {
+            assert.ok(Array.isArray(roles), 'roles should be an array');
+        }
+
         next();
     } catch (err) {
         return res.status(400).json({
             status: 400,
-            message: 'Invalid user data',
+            message: err.message,
             error: err.toString(),
         });
     }
 };
 
 
+
+
 // Userroutes
-router.post('/api/user', validateUserCreateChaiExpect, userController.create)
+router.post('/api/user', validateUserCreate, userController.create)
 router.delete('/api/user/:userId', validateUserIdChaiExpect, validateToken, userController.delete)
 router.get('/api/user', validateToken, userController.getAll)
 router.get('/api/user/profile', validateToken, userController.getProfile)
 router.get('/api/user/:userId', validateUserIdChaiExpect, validateToken, userController.getById)
-router.put('/api/user/:userId', validateUserUpdateChaiExpect, validateToken, userController.update)
+router.put('/api/user/:userId', validateUserUpdate, validateToken, userController.update)
 module.exports = router
