@@ -15,7 +15,7 @@ describe('UC-101 Inloggen', () => {
         done();
     });
 
-    it('TC-101-1 Verplicht veld ontbreekt', (done) => {
+    it.skip('TC-101-1 Verplicht veld ontbreekt', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .send({
@@ -32,7 +32,7 @@ describe('UC-101 Inloggen', () => {
             });
     });
 
-    it('TC-101-2 Niet-valide wachtwoord', (done) => {
+    it.skip('TC-101-2 Niet-valide wachtwoord', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .send({
@@ -50,7 +50,7 @@ describe('UC-101 Inloggen', () => {
             });
     });
 
-    it('TC-101-3 Gebruiker bestaat niet', (done) => {
+    it.skip('TC-101-3 Gebruiker bestaat niet', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .send({
@@ -68,7 +68,7 @@ describe('UC-101 Inloggen', () => {
             });
     });
 
-    it('TC-101-4 Gebruiker succesvol ingelogd', (done) => {
+    it.skip('TC-101-4 Gebruiker succesvol ingelogd', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .send({

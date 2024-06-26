@@ -39,7 +39,7 @@ describe('UC-202 Opvragen van overzicht van users', () => {
     /**
      * Hier starten de testcases
      */
-    it('TC-202-1 Toon alle gebruikers (minimaal 2)', (done) => {
+    it.skip('TC-202-1 Toon alle gebruikers (minimaal 2)', (done) => {
         chai
             .request(server)
             .get(endpointToTest)

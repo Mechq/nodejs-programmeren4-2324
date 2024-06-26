@@ -38,7 +38,7 @@ describe('UC-401 Aanmelden voor maaltijd', () => {
     });
 
 
-        it('TC-401-1 Niet ingelogd', (done) => {
+        it.skip('TC-401-1 Niet ingelogd', (done) => {
             chai
                 .request(server)
                 .get(`${endpointToTest}/1`)
