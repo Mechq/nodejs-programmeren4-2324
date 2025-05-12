@@ -15,7 +15,6 @@ const mealService = {
             const isVega = meal.isVega  === 1 ? 1 : 0
             const isVegan = meal.isVegan === 1 ? 1 : 0
             const isToTakeHome = meal.isToTakeHome  === 0 ? 0 : 1
-            // const dateTime = meal.dateTime
             const maxAmountOfParticipants = meal.maxAmountOfParticipants ? meal.maxAmountOfParticipants : 6;
             const price = meal.price
             const imageUrl = meal.imageUrl
