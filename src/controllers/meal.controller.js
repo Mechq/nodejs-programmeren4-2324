@@ -87,8 +87,9 @@ let userController = {
     update: (req, res, next) => {
         const mealId = req.params.mealId;
         const meal = req.body;
+        const userId = req.userId;
         logger.info('update meal', mealId);
-        mealService.update(mealId, meal, (error, success) => {
+        mealService.update(mealId, meal, userId, (error, success) => {
             if (error) {
                 return next({
                     status: error.status,

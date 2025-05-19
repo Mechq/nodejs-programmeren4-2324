@@ -132,8 +132,10 @@ const mealService = {
             )
         })
     },
-    update: (mealId, meal, callback) => {
+    update: (mealId, meal, userId, callback) => {
         logger.info('update meal', mealId);
+        logger.info('update with user', userId)
+        logger.info('update for meal', meal)
 
         const valuesToUpdate = [];
         const columnsToUpdate = Object.keys(meal)
@@ -159,26 +161,45 @@ const mealService = {
                 return;
             }
 
-            const values = [...valuesToUpdate, mealId];
-
             connection.query(
-                sql,
-                values,
-                function (error, results, fields) {
-                    connection.release();
-
+                'SELECT cookId FROM meal WHERE id = ?',
+                [mealId],
+                function (error, results) {
                     if (error) {
-                        logger.error('Error updating meal:', error.message || 'unknown error');
+                        connection.release();
+                        logger.error('Error fetching cookId:', error.message || 'unknown error');
                         callback(error, null);
-                    } else {
-                        logger.trace(`Meal updated with id ${mealId}.`);
-                        callback(null, {
-                            message: `Meal updated with id ${mealId}.`,
-                            data: results
-                        });
+                        return;
                     }
+
+                    if (results.length === 0 || results[0].cookId !== userId) {
+                        connection.release();
+                        callback(new Error('Unauthorized to update this meal'), null);
+                        return;
+                    }
+                    const values = [...valuesToUpdate, mealId];
+
+                    connection.query(
+                        sql,
+                        values,
+                        function (error, results, fields) {
+                            connection.release();
+
+                            if (error) {
+                                logger.error('Error updating meal:', error.message || 'unknown error');
+                                callback(error, null);
+                            } else {
+                                logger.trace(`Meal updated with id ${mealId}.`);
+                                callback(null, {
+                                    message: `Meal updated with id ${mealId}.`,
+                                });
+                            }
+                        }
+                    );
                 }
             );
+
+
         });
     }
 
