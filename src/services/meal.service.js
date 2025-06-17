@@ -25,8 +25,8 @@ const mealService = {
             logger.trace(isVegan, isVega, isToTakeHome, maxAmountOfParticipants, price, imageUrl, userId, name, description, allergenes)
 
             connection.query(
-                'INSERT INTO meal (isVega, isVegan, isToTakeHome, maxAmountOfParticipants, price, imageUrl, cookId, createDate, updateDate, name, description, allergenes) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), ?, ?, ?)',
-                [isVega, isVegan, isToTakeHome, maxAmountOfParticipants, price, imageUrl, userId, name, description, allergenes],
+                'INSERT INTO meal (isActive, isVega, isVegan, isToTakeHome, dateTime, maxAmountOfParticipants, price, imageUrl, cookId, createDate, updateDate, name, description, allergenes) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(), ?, ?, ?, ?, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), ?, ?, ?)',
+                [1, isVega, isVegan, isToTakeHome, maxAmountOfParticipants, price, imageUrl, userId, name, description, allergenes],
                 function (error, results, fields) {
                     connection.release();
 
