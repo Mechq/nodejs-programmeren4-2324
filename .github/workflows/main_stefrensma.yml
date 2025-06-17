@@ -68,19 +68,62 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mysql-client
 
-      - name: Wait for database to be ready
+      - name: Debug Database Connection
         run: |
-          echo "Waiting for MySQL database connection..."
-          # Loop to check connection until successful or timeout
-          for i in $(seq 1 30); do # Try for up to 300 seconds (30 * 10s)
-            if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" &>/dev/null; then
+          echo "Attempting to connect to MySQL with the following details:"
+          echo "Host: $DB_HOST"
+          echo "Port: $DB_PORT"
+          echo "User: $DB_USER"
+          echo "DB Name: $DB_NAME" # Note: DB_NAME isn't used in the mysql connection check for basic connectivity, but useful for context.
+          # Password is intentionally not echoed for security, as it would be masked anyway.
+
+          echo "Running command: mysql -h \"$DB_HOST\" -P \"$DB_PORT\" -u \"$DB_USER\" -p\"\$DB_PASSWORD\" -e \"SELECT 1\""
+
+          # Attempt to connect, capture output for debugging
+          # The 'set +e' temporarily disables exiting on error for this specific line
+          # The '2>&1' redirects stderr to stdout so it's captured in the variable
+          set +e
+          CONNECTION_OUTPUT=$(mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" 2>&1)
+          CONNECTION_EXIT_CODE=$?
+          set -e # Re-enable exiting on error
+
+          echo "MySQL command exit code: $CONNECTION_EXIT_CODE"
+          echo "MySQL command output:"
+          echo "$CONNECTION_OUTPUT"
+
+          if [ $CONNECTION_EXIT_CODE -eq 0 ]; then
+            echo "Direct connection test successful!"
+          else
+            echo "Direct connection test failed. See output above for details."
+            # Optionally, if you want the workflow to fail immediately for debugging:
+            # exit 1
+          fi
+
+      - name: Wait for database to be ready (Loop)
+        run: |
+          echo "Starting the loop to wait for MySQL..."
+          for i in $(seq 1 10); do # Reduce attempts for faster feedback during debugging
+            echo "Attempt $i: Checking MySQL connection..."
+            # Use the environment variables directly, not secrets again
+            # Redirect only stderr to /dev/null to still see "MySQL is ready!"
+            if mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" 2>/dev/null; then
               echo "MySQL database is ready!"
               break
             fi
-            echo "Waiting for MySQL... ($i/30)"
+            echo "Waiting for MySQL... ($i/10)"
             sleep 10
           done
-          
+
+          # Final check to fail the workflow if the database is not ready after attempts
+          if ! mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" &>/dev/null; then
+            echo "Error: MySQL database not reachable after multiple attempts. Failing job."
+            exit 1
+          fi
+
+      - name: Run tests
+        run: npm test
+
+
 
       - name: Run tests
         run: npm test
