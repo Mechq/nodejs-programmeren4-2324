@@ -21,24 +21,23 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      - name: npm install and build
         run: |
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          npm run build --if-present # Only build here
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
 
-      - name: Upload artifact for deployment job
+      - name: Upload artifact for test and deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: node-app
           path: release.zip
 
-  test:
+  test: # This job will run tests on the built artifact
     runs-on: ubuntu-latest
-    needs: build
+    needs: build # Depends on the build job completing successfully
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -48,27 +47,27 @@ jobs:
       - name: Unzip artifact for tests
         run: unzip release.zip
 
-      - name: Run tests
+      - name: Run tests # This is where your main test suite runs
         run: npm test
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: test # CRITICAL CHANGE: Deploy only if the 'test' job passes
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write # This is required for requesting the JWT
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact for deployment
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -83,4 +82,3 @@ jobs:
           app-name: 'stefrensma'
           slot-name: 'Production'
           package: .
-          
