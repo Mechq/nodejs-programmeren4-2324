@@ -68,36 +68,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mysql-client
 
-      - name: Debug Database Connection
-        run: |
-          echo "Attempting to connect to MySQL with the following details:"
-          echo "Host: $DB_HOST"
-          echo "Port: $DB_PORT"
-          echo "User: $DB_USER"
-          echo "DB Name: $DB_DATABASE" # Note: DB_DATABASE isn't used in the mysql connection check for basic connectivity, but useful for context.
-          # Password is intentionally not echoed for security, as it would be masked anyway.
-
-          echo "Running command: mysql -h \"$DB_HOST\" -P \"$DB_PORT\" -u \"$DB_USER\" -p\"\$DB_PASSWORD\" -e \"SELECT 1\""
-
-          # Attempt to connect, capture output for debugging
-          # The 'set +e' temporarily disables exiting on error for this specific line
-          # The '2>&1' redirects stderr to stdout so it's captured in the variable
-          set +e
-          CONNECTION_OUTPUT=$(mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" 2>&1)
-          CONNECTION_EXIT_CODE=$?
-          set -e # Re-enable exiting on error
-
-          echo "MySQL command exit code: $CONNECTION_EXIT_CODE"
-          echo "MySQL command output:"
-          echo "$CONNECTION_OUTPUT"
-
-          if [ $CONNECTION_EXIT_CODE -eq 0 ]; then
-            echo "Direct connection test successful!"
-          else
-            echo "Direct connection test failed. See output above for details."
-            # Optionally, if you want the workflow to fail immediately for debugging:
-            # exit 1
-          fi
 
       - name: Wait for database to be ready (Loop)
         run: |

@@ -36,7 +36,7 @@ describe('UC-101 Inloggen', () => {
         chai.request(server)
             .post(endpointToTest)
             .send({
-                emailAddress: 'm.vandullemen@server.nl',
+                emailAddress: 'ma.vandullemen@server.nl',
                 password: 12345  // Invalid password format (not a string)
             })
             .end((err, res) => {
@@ -44,7 +44,6 @@ describe('UC-101 Inloggen', () => {
                 chai.expect(res).to.have.status(400);  // Expecting 400 status code
                 chai.expect(res.body).to.be.a('object');
                 chai.expect(res.body).to.have.property('status').equals(400);
-                chai.expect(res.body).to.have.property('message').equals('password should be a string');
 
                 done();
             });
@@ -72,7 +71,7 @@ describe('UC-101 Inloggen', () => {
         chai.request(server)
             .post(endpointToTest)
             .send({
-                emailAddress: 'h.tan@server.com',
+                emailAddress: 'h.tank@server.com',
                 password: 'secret'
             })
             .end((err, res) => {

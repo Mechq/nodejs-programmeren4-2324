@@ -148,7 +148,7 @@ describe('UC-201 Registreren en beheren van users', () => {
                 street: 'Teststraat 1',
                 city: 'Teststad',
                 phoneNumber: '06 98765432',
-                roles: ['user']
+                roles: ['guest']
             })
             .end((err, res) => {
                 chai.expect(res).to.have.status(200);
