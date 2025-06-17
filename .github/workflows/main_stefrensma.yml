@@ -42,7 +42,7 @@ jobs:
     env: # IMPORTANT: Environment variables for the entire job are defined here
       DB_HOST: ${{ secrets.DB_HOST }}
       DB_PORT: ${{ secrets.DB_PORT }}
-      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_DATABASE: ${{ secrets.DB_DATABASE }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
@@ -74,7 +74,7 @@ jobs:
           echo "Host: $DB_HOST"
           echo "Port: $DB_PORT"
           echo "User: $DB_USER"
-          echo "DB Name: $DB_NAME" # Note: DB_NAME isn't used in the mysql connection check for basic connectivity, but useful for context.
+          echo "DB Name: $DB_DATABASE" # Note: DB_DATABASE isn't used in the mysql connection check for basic connectivity, but useful for context.
           # Password is intentionally not echoed for security, as it would be masked anyway.
 
           echo "Running command: mysql -h \"$DB_HOST\" -P \"$DB_PORT\" -u \"$DB_USER\" -p\"\$DB_PASSWORD\" -e \"SELECT 1\""
