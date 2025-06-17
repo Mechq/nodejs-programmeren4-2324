@@ -110,6 +110,6 @@ router.post('/api/meal', validateToken, validateMealCreateChaiExpect, mealContro
 router.get('/api/meal', mealController.getAll)
 router.get('/api/meal/:mealId', mealController.getById)
 router.put('/api/meal/:mealId', validateToken, mealController.update)
-router.delete('/api/meal/:mealId', mealController.delete)
+router.delete('/api/meal/:mealId',validateToken, mealController.delete)
 module.exports = router
 

@@ -53,10 +53,11 @@ const validateUserCreate = (req, res, next) => {
         assert.ok(lastName, 'Missing or incorrect lastName field');
         assert.strictEqual(typeof lastName, 'string', 'Missing or incorrect lastName field');
 
+
         assert.ok(emailAddress, 'Missing or incorrect emailAddress field');
         assert.strictEqual(typeof emailAddress, 'string', 'Missing or incorrect emailAddress field');
         assert.ok(
-            /^[a-zA-Z][.][a-zA-Z]{2,}@[a-zA-Z]{2,}\.[a-zA-Z]{2,3}$/.test(emailAddress),
+            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(emailAddress),
             'Missing or incorrect emailAddress field'
         );
 

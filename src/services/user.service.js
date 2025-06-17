@@ -35,7 +35,10 @@ const userService = {
                         callback(null, {
                             status: 201,
                             message: 'User created.',
-                            data: user
+                            data: {
+                                userId: results.insertId,
+                                ...user
+                            }
                         });
                     }
                 }
@@ -140,43 +143,53 @@ const userService = {
         })
     }
     ,
-    delete: (userId, creatorId, callback) => {
-        logger.info('delete user', userId)
+    delete: (userIdToDelete, creatorId, callback) => {
+        logger.info('delete user', userIdToDelete);
         db.getConnection(function (err, connection) {
             if (err) {
-                logger.error(err)
-                callback(err, null)
-                return
+                logger.error(err);
+                return callback({ status: 500, message: 'Database connection error' }, null);
             }
-            userId = parseInt(userId, 10)
-            if(creatorId === userId){
+
+            userIdToDelete = parseInt(userIdToDelete, 10);
+            creatorId = parseInt(creatorId, 10);
+
+
+            if (creatorId !== userIdToDelete) {
+                connection.release();
+                logger.info('User not authorized to delete this user: Creator ID', creatorId, 'User ID to delete', userIdToDelete);
+                return callback({ status: 403, message: 'You are not authorized to delete this user.' }, null);
+            }
+
             connection.query(
                 'DELETE FROM `user` WHERE id = ?',
-                id = userId,
+                [userIdToDelete],
                 function (error, results, fields) {
-                    connection.release()
+                    connection.release();
 
-                    if (err) {
-                        logger.info(
-                            'error deleting user: ',
-                            err.message || 'unknown error'
-                        )
-                        callback(err, null)
-                    } else {
-                        logger.trace(`User deleted with id ${userId}.`)
-                        callback(null, {
-                            message: `User met ID ${userId} is verwijderd`,
-                            data: results
-                        })
+                    if (error) {
+                        logger.error('error deleting user:', error.message || 'unknown error');
+                        return callback({ status: 500, message: 'Failed to delete user', data: error }, null);
                     }
+
+                    if (results.affectedRows === 0) {
+
+                        logger.warn(`Attempted to delete non-existent user with id ${userIdToDelete}.`);
+                        return callback({
+                            status: 404,
+                            message: `User with ID ${userIdToDelete} not found.`
+                        }, null);
+                    }
+
+                    logger.trace(`User deleted with id ${userIdToDelete}.`);
+                    return callback(null, {
+                        status: 200,
+                        message: `User with ID ${userIdToDelete} is verwijderd`,
+                        data: { affectedRows: results.affectedRows }
+                    });
                 }
-            )
-        }
-            else{
-                logger.info('User not authorized to delete user')
-                callback(new Error('User not authorized to delete user'), null)
-            }
-        })
+            );
+        });
     },
     update: (userId, creatorId, user, callback) => {
         logger.info('update user', userId);

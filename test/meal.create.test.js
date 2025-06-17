@@ -12,6 +12,7 @@ tracer.setLevel('warn')
 const endpointToTest = '/api/meal'
 
 let authToken = '';
+let createdMealId = ''; // Variable to store the ID of the created meal
 
 describe('UC-301 Toevoegen van maaltijd', () => {
     let authToken;
@@ -35,12 +36,13 @@ describe('UC-301 Toevoegen van maaltijd', () => {
         console.log('Before each test');
         done();
     });
+    
 
 
     /**
      * Hier starten de testcases
      */
-    it.skip('TC-301-1 Verplicht veld ontbreekt', (done) => {
+    it('TC-301-1 Verplicht veld ontbreekt', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .set('Authorization', `Bearer ${authToken}`)
@@ -62,7 +64,7 @@ describe('UC-301 Toevoegen van maaltijd', () => {
             })
     })
 
-    it.skip('TC-301-2 Niet ingelogd', (done) => {
+    it('TC-301-2 Niet ingelogd', (done) => {
         chai.request(server)
             .post(endpointToTest)
 
@@ -84,7 +86,7 @@ describe('UC-301 Toevoegen van maaltijd', () => {
             })
     })
 
-    it.skip('TC-301-3 Maaltijd succesvol toegevoegd', (done) => {
+    it('TC-301-3 Maaltijd succesvol toegevoegd', (done) => {
         chai.request(server)
             .post(endpointToTest)
             .set('Authorization', `Bearer ${authToken}`)
@@ -102,7 +104,82 @@ describe('UC-301 Toevoegen van maaltijd', () => {
             .end((err, res) => {
                 chai.expect(res).to.have.status(200)
                 chai.expect(res.body).to.have.property('status').equals(200)
+                createdMealId = res.body.data.id; // Capture the meal ID
+                console.log('Meal created with ID:', createdMealId); // Add this line
+                done()
+
+            })
+    })
+    it('TC-302-1 Maaltijd updaten - niet ingelogd', (done) => {
+        chai.request(server)
+            .put(`${endpointToTest}/${createdMealId}`)
+            .send({
+                name: "Updated Meal Name",
+                description: "Updated description for meal example",
+                price: 12.50
+            })
+            .end((err, res) => {
+                chai.expect(res).to.have.status(401)
+                chai.expect(res.body).to.have.property('status').equals(401)
                 done()
             })
     })
+
+    it('TC-302-2 Maaltijd updaten - succesvol', (done) => {
+        console.log('Attempting to update meal with ID:', createdMealId); // Add this line
+        chai.request(server)
+            .put(`${endpointToTest}/${createdMealId}`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({
+                name: "Updated Meal Name",
+                description: "Updated description for meal example",
+                price: 12.50
+            })
+            .end((err, res) => {
+                chai.expect(res).to.have.status(200)
+                chai.expect(res.body).to.have.property('status').equals(200)
+                done()
+            })
+    })
+
+    it('TC-302-3 Maaltijd updaten - maaltijd niet gevonden', (done) => {
+        const nonExistentMealId = 99999; // Assuming this ID won't exist
+        chai.request(server)
+            .put(`${endpointToTest}/${nonExistentMealId}`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .send({
+                name: "Updated Meal Name",
+                description: "Updated description for meal example",
+                price: 12.50
+            })
+            .end((err, res) => {
+                chai.expect(res).to.have.status(404) // Or whatever status your API returns for not found
+                chai.expect(res.body).to.have.property('status').equals(404)
+                done()
+            })
+    })
+
+    it('TC-303-1 Maaltijd verwijderen - niet ingelogd', (done) => {
+        chai.request(server)
+            .delete(`${endpointToTest}/${createdMealId}`)
+            .end((err, res) => {
+                chai.expect(res).to.have.status(401)
+                chai.expect(res.body).to.have.property('status').equals(401)
+                done()
+            })
+    })
+
+    it('TC-303-2 Maaltijd verwijderen - succesvol', (done) => {
+        chai.request(server)
+            .delete(`${endpointToTest}/${createdMealId}`)
+            .set('Authorization', `Bearer ${authToken}`)
+            .end((err, res) => {
+                chai.expect(res).to.have.status(200)
+                chai.expect(res.body).to.have.property('status').equals(200)
+                done()
+            })
+    })
+
+
+
 })

@@ -1,67 +1,77 @@
 const logger = require('../util/logger');
 const db = require('../dao/mysql-db.js');
+
 const participationService = {
     getAll: (userId, mealId, callback) => {
         logger.info('getAll', mealId);
         db.getConnection(function (err, connection) {
             if (err) {
                 logger.error(err);
-                callback(err, null);
-                return;
+                return callback({ status: 500, message: 'Database connection error' }, null);
             }
-            // query om voor mealId de cookId op te halen
-            // als cookId gelijk is aan userId, dan is de user de cook
-            // en kan de user deelnemers opvragen
-            connection.query(
 
+            // Query to get cookId for the given mealId
+            connection.query(
                 'SELECT cookId FROM `meal` WHERE `id` = ?',
                 [mealId],
-                function (error, results, fields) {
-                    connection.release();
-
+                function (error, results) {
                     if (error) {
+                        connection.release();
                         logger.error(error);
-                        callback(error, null);
-                    } else {
-                        logger.debug(results);
-                        if (results[0].cookId === userId) {
-                            connection.query(
+                        return callback({ status: 500, message: 'Error fetching meal cookId' }, null);
+                    }
 
-                                'SELECT * FROM `meal_participants_user` WHERE `mealId` = ?',
-                                [mealId],
-                                function (error, results, fields) {
-                                    connection.release();
+                    if (!results || results.length === 0) {
+                        connection.release();
+                        return callback({
+                            status: 404, // Corrected to 404 if meal doesn't exist
+                            message: `Meal for MealId: ${mealId} not found.`,
+                        }, null);
+                    }
 
-                                    if (error) {
-                                        logger.error(error);
-                                        callback(error, null);
-                                    } else {
-                                        logger.debug(results);
-                                        callback(null, {
-                                            message: `Found ${results.length} participations.`,
-                                            data: results
-                                        });
-                                    }
+                    const cookId = results[0].cookId;
+                    // Important: Convert userId from string (from JWT) to number for comparison with DB cookId
+                    const numericUserId = parseInt(userId, 10);
+
+                    if (cookId === numericUserId) {
+                        // User is the cook, fetch participants
+                        connection.query(
+                            'SELECT * FROM `meal_participants_user` WHERE `mealId` = ?',
+                            [mealId],
+                            function (error, participants) { // Renamed results to participants for clarity
+                                connection.release(); // Release connection after all queries are done
+                                if (error) {
+                                    logger.error(error);
+                                    return callback({ status: 500, message: 'Error fetching participants' }, null);
+                                } else {
+                                    logger.debug(participants);
+                                    return callback(null, {
+                                        status: 200, // Added status
+                                        message: `Found ${participants.length} participations.`,
+                                        data: participants
+                                    });
                                 }
-                            );
-                        } else {
-                            callback(null, {
-                                message: `User is not the cook of the meal.`,
-                                data: {}
-                            });
-                        }
+                            }
+                        );
+                    } else {
+                        connection.release(); // Release connection if not the cook
+                        return callback({
+                            status: 403, // Use 403 Forbidden
+                            message: `User is not authorized to view participants for this meal.`,
+                            data: {}
+                        }, null); // Return an error, not a success with an empty data object
                     }
                 }
             );
         });
     },
+
     register: (userId, mealId, callback) => {
         logger.info('register user: ', userId, ' for meal: ', mealId);
         db.getConnection(function (err, connection) {
             if (err) {
                 logger.error(err);
-                callback(err, null);
-                return;
+                return callback({ status: 500, message: 'Database connection error' }, null);
             }
             connection.query(
                 'INSERT INTO `meal_participants_user` (`mealId`, `userId`) VALUES (?, ?)',
@@ -70,20 +80,22 @@ const participationService = {
                     connection.release();
                     if (error) {
                         if (error.code === 'ER_NO_REFERENCED_ROW_2') {
-                            // Handle the specific case where the meal does not exist
                             const errorMessage = `Meal with ID ${mealId} does not exist.`;
-                            const errorObject = new Error(errorMessage);
-                            errorObject.status = 404;
                             logger.error(errorMessage);
-                            callback(errorObject, { data: {} });
+                            // Corrected to pass an error object, not a mix
+                            return callback({ status: 404, message: errorMessage }, null);
+                        } else if (error.code === 'ER_DUP_ENTRY') {
+                            // Handle duplicate entry if user tries to register twice
+                            const errorMessage = `User ${userId} is already registered for meal ${mealId}.`;
+                            logger.warn(errorMessage);
+                            return callback({ status: 400, message: errorMessage }, null);
                         } else {
-                            // Handle other errors
                             logger.error(error);
-                            callback(error, null);
+                            return callback({ status: 500, message: 'Failed to register for meal', data: error }, null);
                         }
                     } else {
                         logger.debug(results);
-                        callback(null, {
+                        return callback(null, {
                             message: `User met ID ${userId} is aangemeld voor maaltijd met ID ${mealId}`,
                             status: 200,
                             data: {}
@@ -93,151 +105,151 @@ const participationService = {
             );
         });
     },
+
     getParticipantContact: (userId, mealId, participantId, callback) => {
         logger.info('getAllContacts for meal ', mealId, ' and participant ', participantId, ' for user ', userId);
         db.getConnection(function (err, connection) {
             if (err) {
                 logger.error(err);
-                callback(err, null);
-                return;
+                return callback({ status: 500, message: 'Database connection error' }, null);
             }
+
             // Check if the user is the cook of the meal
-            // If the user is the cook, then the user can see the contact information of the participant
             connection.query(
                 'SELECT cookId FROM `meal` WHERE `id` = ?',
                 [mealId],
-                function (error, results, fields) {
-                    connection.release();
-
+                function (error, results) {
                     if (error) {
+                        connection.release();
                         logger.error(error);
-                        callback(error, null);
-                    } else {
-                        logger.debug(results);
-                        if (results.length === 0) {
-                            callback(null, {
-                                message: `Meal not found.`,
-                                data: {}
-                            });
-                        } else {
-                            const cookId = results[0].cookId;
-                            if (cookId === userId) {
-                                connection.query(
-                                    'SELECT userId FROM `meal_participants_user` WHERE `mealId` = ?',
-                                    [mealId],
-                                    function (error, results, fields) {
-                                        connection.release();
-                                        if (error) {
-                                            logger.error(error);
-                                            callback(error, null);
-                                        } else {
-                                            logger.debug(results);
-                                            // Check if the specified participantId is in the results
-                                            const participantIds = results.map(result => result.userId);
-                                            participantId = parseInt(participantId, 10)
-                                            if (participantIds.includes(participantId)) {
-                                                connection.query(
-                                                    'SELECT id, emailAddress, phoneNumber FROM `user` WHERE `id` = ?',
-                                                    [participantId],
-                                                    function (error, results, fields) {
-                                                        if (error) {
-                                                            logger.error(error);
-                                                            callback(error, null);
-                                                        } else {
-                                                            logger.debug(results);
-                                                            callback(null, {
-                                                                message: `Found participant.`,
-                                                                data: results
-                                                            });
-                                                        }
-                                                    }
-                                                );
+                        return callback({ status: 500, message: 'Error fetching meal cookId' }, null);
+                    }
+
+                    if (results.length === 0) {
+                        connection.release();
+                        return callback({
+                            status: 404,
+                            message: `Meal not found.`
+                        }, null);
+                    }
+
+                    const cookId = results[0].cookId;
+                    const numericUserId = parseInt(userId, 10); // Convert userId to number
+
+                    if (cookId === numericUserId) {
+                        // User is the cook, now check if participant is in the meal
+                        connection.query(
+                            'SELECT userId FROM `meal_participants_user` WHERE `mealId` = ?',
+                            [mealId],
+                            function (error, participantResults) { // Renamed for clarity
+                                if (error) {
+                                    connection.release();
+                                    logger.error(error);
+                                    return callback({ status: 500, message: 'Error fetching meal participants' }, null);
+                                }
+
+                                const participantIds = participantResults.map(result => result.userId);
+                                const numericParticipantId = parseInt(participantId, 10); // Convert participantId to number
+
+                                if (participantIds.includes(numericParticipantId)) {
+                                    // Participant is in the meal, fetch contact info
+                                    connection.query(
+                                        'SELECT id, emailAddress, phoneNumber FROM `user` WHERE `id` = ?',
+                                        [numericParticipantId],
+                                        function (error, contactResults) { // Renamed for clarity
+                                            connection.release(); // Release connection after final query
+                                            if (error) {
+                                                logger.error(error);
+                                                return callback({ status: 500, message: 'Error fetching participant contact' }, null);
                                             } else {
-                                                callback(null, {
-                                                    message: `User does not participate in the meal.`,
-                                                    data: {}
+                                                logger.debug(contactResults);
+                                                return callback(null, {
+                                                    status: 200, // Added status
+                                                    message: `Found participant contact.`,
+                                                    data: contactResults[0] || {} // Return single object or empty
                                                 });
                                             }
                                         }
-
-                                    }
-
-                                );
+                                    );
+                                } else {
+                                    connection.release(); // Release connection
+                                    return callback({
+                                        status: 404, // Participant not found for this meal
+                                        message: `User is not participating in the specified meal.`
+                                    }, null);
+                                }
                             }
-                            else {
-                                callback(null, {
-                                    message: `User is not the cook of the meal.`,
-                                    data: {}
-                                });
-                            }
-                        }
+                        );
+                    } else {
+                        connection.release(); // Release connection
+                        return callback({
+                            status: 403, // Forbidden
+                            message: `User is not the cook of the meal.`
+                        }, null);
                     }
                 }
             );
         });
     },
+
     signout: (userId, mealId, callback) => {
-        mealId = parseInt(mealId, 10);
-        logger.info('signed out user: ', userId, ' for meal: ', mealId);
+        const numericMealId = parseInt(mealId, 10);
+        const numericUserId = parseInt(userId, 10);
+        logger.info('Signing out user: ', numericUserId, ' from meal: ', numericMealId);
+
         db.getConnection(function (err, connection) {
             if (err) {
                 logger.error(err);
-                callback(err, null);
-                return;
+                return callback({ status: 500, message: 'Database connection error' }, null);
             }
-            // Alle deelnemende meal ids van een user ophalen
-            // als de mealId van de user gelijk is aan de meegegeven mealId
-            // dan kan de user zich uitschrijven
+
+            // Check if the user is actually participating in the meal
             connection.query(
-                'SELECT mealId FROM `meal_participants_user` WHERE `userId` = ?',
-                [userId],
-                function (error, results, fields) {
+                'SELECT `mealId` FROM `meal_participants_user` WHERE `userId` = ? AND `mealId` = ?',
+                [numericUserId, numericMealId],
+                function (error, results) {
                     if (error) {
                         connection.release();
                         logger.error(error);
-                        callback(error, null);
-                    } else {
-                        logger.debug(results);
-                        let found = false;
-                        for (let i = 0; i < results.length; i++) {
-                            console.log('comparing '+ typeof results[i].mealId + ' with mealId ' +  typeof mealId);
-                            if (results[i].mealId === mealId) {
-                                found = true;
-                                connection.query(
-                                    'DELETE FROM `meal_participants_user` WHERE userId = (?) AND mealId = (?)',
-                                    [userId, mealId],
-                                    function (error, results, fields) {
-                                        connection.release();
-                                        if (error) {
-                                            logger.error(error);
-                                            callback(error, null);
-                                        } else {
-                                            logger.debug(results);
-                                            callback(null, {
+                        return callback({ status: 500, message: 'Error checking participation status' }, null);
+                    }
 
-                                                message: 'Participation removed.',
-                                                status: 200,
-                                                data: {}
-                                            });
-                                        }
-                                    }
-                                );
-                                break; // Exit the loop once found
+                    if (results.length === 0) {
+                        connection.release();
+                        return callback({
+                            status: 404, // User is not participating in this specific meal
+                            message: `User is not participating in meal with ID ${numericMealId}.`
+                        }, null);
+                    }
+
+                    // User is participating, proceed with deletion
+                    connection.query(
+                        'DELETE FROM `meal_participants_user` WHERE `userId` = ? AND `mealId` = ?',
+                        [numericUserId, numericMealId],
+                        function (error, deleteResults) { // Renamed results to deleteResults
+                            connection.release(); // Release connection after the delete query
+                            if (error) {
+                                logger.error(error);
+                                return callback({ status: 500, message: 'Failed to sign out from meal', data: error }, null);
+                            } else {
+                                if (deleteResults.affectedRows === 0) {
+                                    // This case should theoretically be caught by the SELECT above,
+                                    // but as a safeguard, it means nothing was deleted.
+                                    return callback({ status: 404, message: 'Participation not found or already removed.' }, null);
+                                }
+                                logger.debug(deleteResults);
+                                return callback(null, {
+                                    status: 200,
+                                    message: `User with ID ${numericUserId} signed out from meal with ID ${numericMealId}.`,
+                                    data: {}
+                                });
                             }
                         }
-                        if (!found) {
-                            connection.release();
-                            callback(null, {
-                                message: 'User is not participating in the specified meal.',
-                                data: {}
-                            });
-                        }
-                    }
+                    );
                 }
             );
         });
     }
-
-
 };
+
 module.exports = participationService;

@@ -66,8 +66,9 @@ let userController = {
     },
     delete: (req, res, next) => {
         const mealId = req.params.mealId;
+        const userId = req.userId;
         logger.info('delete meal', mealId);
-        mealService.delete(mealId, (error, success) => {
+        mealService.delete(mealId, userId, (error, success) => {
             if (error) {
                 return next({
                     status: error.status,
